@@ -1,4 +1,6 @@
 # 📚 Book API Golang
+> 💡 _Catatan: Repositori ini dikelola oleh saya sendiri menggunakan dua akun GitHub — [`johannessipayung`](https://github.com/johannessipayung) sebagai akun utama dan [`SheraCode`](https://github.com/SheraCode) sebagai akun eksperimen/pengujian._
+
 
 ## 📝 Deskripsi
 Aplikasi backend sederhana untuk manajemen buku dan user authentication berbasis JWT.
@@ -70,4 +72,6 @@ Import file Postman Collection `postman/book-api.postman_collection.json`
 ## 🌱 Pengembangan Selanjutnya (Opsional)
 Penggunaan DTO (Data Transfer Object) secara konsisten untuk memisahkan model domain dengan data yang dikirim dan diterima lewat API, sehingga menjaga keamanan dan fleksibilitas data yang diproses di tiap layer
 ## 👨‍💻 Author
-Johannes Bastian Jasa Sipayung
+
+- Johannes Bastian Jasa Sipayung ([@johannessipayung](https://github.com/johannessipayung))  
+  *Kontributor lain: [@SheraCode](https://github.com/SheraCode) adalah akun saya juga.*
