@@ -3,7 +3,7 @@
 
 
 ## 📝 Deskripsi
-Aplikasi backend sederhana untuk manajemen buku dan user authentication berbasis JWT.
+Project ini adalah aplikasi backend untuk manajemen buku dengan fitur login dan register menggunakan JWT. Pengguna dapat menambahkan, mengedit, dan menghapus buku. Sistem ini menggunakan Golang dengan framework Gin, database PostgreSQL, dan pola layering agar kode terstruktur, aman, dan mudah dikembangkan.
 
 ## Use Case Diagram
 Berikut adalah use case diagram yang menggambarkan fungsi utama dari aplikasi Book Management ini:
