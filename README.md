@@ -58,16 +58,20 @@ Menggunakan **Layered Architecture Pattern** agar kode terstruktur dengan baik d
 
 ## ▶️ Jalankan
 ```bash
-go run cmd/main.go
+go run main.go
 ```
 
 ## 🧪 E2E Test
 ```bash
-go test ./...
+go test ./e2e
 ```
 
 ## 📬 Dokumentasi
-Import file Postman Collection `postman/book-api.postman_collection.json`
+
+Dokumentasi lengkap API ini tersedia secara publik di Postman dan dapat diakses melalui link berikut:
+
+🔗 [Lihat Dokumentasi API di Postman](https://documenter.getpostman.com/view/27541471/2sB2qcBzvp)
+
 
 ## 🌱 Pengembangan Selanjutnya (Opsional)
 Penggunaan DTO (Data Transfer Object) secara konsisten untuk memisahkan model domain dengan data yang dikirim dan diterima lewat API, sehingga menjaga keamanan dan fleksibilitas data yang diproses di tiap layer
