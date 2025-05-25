@@ -5,6 +5,29 @@
 ## 📝 Deskripsi
 Aplikasi backend sederhana untuk manajemen buku dan user authentication berbasis JWT.
 
+## Use Case Diagram
+Berikut adalah use case diagram yang menggambarkan fungsi utama dari aplikasi Book Management ini:
+
+![Use Case Book Management](usecase-bookmanagement.jpeg)
+
+## 🔗 Relasi Antar Tabel
+
+Project ini menggunakan tiga entitas utama yaitu **User**, **Category**, dan **Book** dengan relasi sebagai berikut:
+
+- 👤 **User** dan 📚 **Book** memiliki relasi **One-to-Many**, artinya satu user dapat memiliki banyak buku, tetapi satu buku hanya dimiliki oleh satu user. Ini direpresentasikan dengan adanya `UserID` sebagai foreign key pada tabel `books`.  
+  Contohnya, seorang user bisa menambahkan beberapa buku ke koleksinya, tapi setiap buku hanya tercatat sebagai milik satu user.
+
+- 🗂️ **Category** dan 📚 **Book** juga memiliki relasi **One-to-Many**, dimana satu kategori bisa memiliki banyak buku, namun satu buku hanya masuk ke dalam satu kategori tertentu.  
+  Hal ini diwujudkan dengan `CategoryID` sebagai foreign key pada tabel `books`. Misalnya, kategori "Fiksi" bisa berisi banyak buku, tetapi satu buku hanya dapat dikategorikan sebagai "Fiksi" saja.
+
+Dengan struktur relasi ini, aplikasi dapat mengelola data buku secara terorganisir berdasarkan siapa pemiliknya dan kategori buku tersebut, sekaligus menjaga integritas data dengan menggunakan foreign key.
+
+✨ Secara garis besar, relasi ini memastikan:
+
+- 📋 Data user terhubung dengan buku yang dimilikinya  
+- 🏷️ Buku dapat diklasifikasikan ke dalam kategori tertentu  
+- 🔍 Memudahkan dalam query data seperti mengambil semua buku milik user tertentu atau semua buku dalam kategori tertentu
+
 ## 🧱 Project Structure & Pattern Explanation
 
 Project ini menggunakan **Layering Pattern** (Layered Architecture) yang membagi aplikasi menjadi beberapa lapisan dengan tanggung jawab berbeda. Tujuan penggunaan pattern ini adalah untuk:
