@@ -27,7 +27,7 @@ func setupAuthTest() (*gin.Engine, *gorm.DB) {
 
 func TestRegisterLogin(t *testing.T) {
 	r, _ := setupAuthTest()
-	user := model.User{Username: "TestAuth", Email: "test@mail.com", Password: "pass"}
+	user := model.User{Username: "TestAuth", Email: "testauth@mail.com", Password: "pass"}
 	body, _ := json.Marshal(user)
 
 	req := httptest.NewRequest("POST", "/register", bytes.NewBuffer(body))
