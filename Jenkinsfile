@@ -7,7 +7,6 @@ pipeline {
 
     environment {
         GO_BIN = "/usr/local/go/bin/go"
-        PATH = "/opt/homebrew/bin:${env.PATH}"
     }
 
     stages {
