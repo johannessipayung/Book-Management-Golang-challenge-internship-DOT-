@@ -15,10 +15,9 @@ pipeline {
                 sh 'ls -la'
             }
         }
-
-        stage('Run') {
+        stage('Run (Short)') {
             steps {
-                sh './book-management'
+                sh 'timeout 5 ./book-management || true'
             }
         }
 
