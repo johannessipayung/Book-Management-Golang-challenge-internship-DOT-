@@ -1,10 +1,14 @@
 pipeline {
-    agent any
+    agent {
+        node {
+            label "golang && linux"
+        }
+    }
     
     stages {
         stage('Hello') {
             steps {
-                echo 'Hello World'
+                echo 'Hello Worlds'
             }
         }
     }
