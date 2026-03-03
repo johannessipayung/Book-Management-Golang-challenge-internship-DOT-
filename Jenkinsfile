@@ -4,28 +4,24 @@ pipeline {
             label 'golang && linux'
         }
     }
-    
-    environment {
-        SCRIPT = "book-management"
-    }
 
     stages {
         stage('Build') {
             steps {
-                sh '/usr/local/go/bin/go mod download'
-                sh '/usr/local/go/bin/go build -o book-management .'
+                sh 'go mod download'
+                sh 'go build -o book-management .'
             }
         }
 
         stage('Run') {
             steps {
-                sh '/usr/local/go/bin/${SCRIPT}'
+                sh './book-management'
             }
         }
 
         stage('Test') {
             steps {
-                sh '/usr/local/go/bin/go test ./...'
+                sh 'go test ./...'
             }
         }
 
