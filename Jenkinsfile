@@ -5,28 +5,33 @@ pipeline {
         }
     }
     
+    environment {
+        SCRIPT = "book-management"
+    }
+
     stages {
         stage('Build') {
             steps {
-                echo ("Hello Build 1")
-                sleep(5)
-                echo ("Hello Build 2")
+                sh '/usr/local/go/bin/go mod download'
+                sh '/usr/local/go/bin/go build -o book-management .'
+            }
+        }
+
+        stage('Run') {
+            steps {
+                sh '/usr/local/go/bin/${SCRIPT}'
             }
         }
 
         stage('Test') {
             steps {
-                echo ("Hello Test 1")
-                sleep(5)
-                echo ("Hello Test 2")
+                sh '/usr/local/go/bin/go test ./...'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo ("Hello Deploy 1")
-                sleep(5)
-                echo ("Hello Deploy 2")
+                echo "Simulating deploy..."
             }
         }
     }
