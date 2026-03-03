@@ -6,10 +6,13 @@ pipeline {
     }
 
     stages {
+
         stage('Build') {
             steps {
-                sh 'go mod download'
-                sh 'go build -o book-management .'
+                sh '/usr/local/go/bin/go version'
+                sh '/usr/local/go/bin/go mod download'
+                sh '/usr/local/go/bin/go build -o book-management .'
+                sh 'ls -la'
             }
         }
 
@@ -21,7 +24,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'go test ./...'
+                sh '/usr/local/go/bin/go test ./...'
             }
         }
 
