@@ -5,47 +5,79 @@ pipeline {
         }
     }
 
+    environment {
+        GO_BIN = "/usr/local/go/bin/go"
+    }
+
     stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Quality Checks') {
+            parallel {
+
+                stage('Vet') {
+                    steps {
+                        sh '${GO_BIN} vet ./...'
+                    }
+                }
+
+                stage('Lint') {
+                    steps {
+                        sh 'golangci-lint run || true'
+                    }
+                }
+
+                stage('Test') {
+                    steps {
+                        sh '${GO_BIN} test -coverprofile=coverage.out ./...'
+                    }
+                }
+            }
+        }
 
         stage('Build') {
             steps {
-                sh '/usr/local/go/bin/go version'
-                sh '/usr/local/go/bin/go mod download'
-                sh '/usr/local/go/bin/go build -o book-management .'
-                sh 'ls -la'
-            }
-        }
-        stage('Run (Short)') {
-            steps {
-                sh 'timeout 5 ./book-management || true'
+                sh '${GO_BIN} mod download'
+                sh '${GO_BIN} build -o book-management .'
             }
         }
 
-        stage('Test') {
+        stage('Generate Coverage Report') {
             steps {
-                sh '/usr/local/go/bin/go test ./...'
+                sh '${GO_BIN} tool cover -html=coverage.out -o coverage.html'
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'book-management, coverage.html', fingerprint: true
             }
         }
 
         stage('Deploy') {
+            when {
+                branch 'main'
+            }
             steps {
-                echo "Simulating deploy..."
+                echo "Simulating deploy to environment..."
             }
         }
     }
 
     post {
         always {
-            echo "I will always say Hello again!"
+            echo "Pipeline finished."
         }
         success {
-            echo "Yay, success"
+            echo "Build SUCCESS"
         }
         failure {
-            echo "Oh no, failure"
-        }
-        cleanup {
-            echo "Don't care success or error"
+            echo "Build FAILED"
         }
     }
 }
