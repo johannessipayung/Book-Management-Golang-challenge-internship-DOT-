@@ -7,6 +7,7 @@ pipeline {
 
     environment {
         GO_BIN = "/usr/local/go/bin/go"
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/local/go/bin:${env.PATH}"
     }
 
     stages {
@@ -26,11 +27,14 @@ pipeline {
                     }
                 }
 
-                stage('Lint') {
-                    steps {
-                        sh '/opt/homebrew/bin/golangci-lint run'
-                    }
-                }
+        stage('Lint') {
+            steps {
+                sh '''
+                export PATH=$PATH:/usr/local/go/bin:/opt/homebrew/bin
+                golangci-lint run
+                '''
+            }
+        }
 
                 stage('Test') {
                     steps {
@@ -65,6 +69,14 @@ pipeline {
             }
             steps {
                 echo "Simulating deploy to environment..."
+            }
+        }
+
+        stage('Debug') {
+            steps {
+                sh 'echo $PATH'
+                sh 'which go'
+                sh 'which golangci-lint'
             }
         }
     }
