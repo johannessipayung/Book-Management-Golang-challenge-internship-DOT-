@@ -28,7 +28,7 @@ pipeline {
 
                 stage('Lint') {
                     steps {
-                        sh 'golangci-lint run || true'
+                        sh '/opt/homebrew/bin/golangci-lint run'
                     }
                 }
 
