@@ -6,6 +6,8 @@ import (
 	"challengeGO/middleware"
 	"challengeGO/repository"
 	"challengeGO/service"
+	"log"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -57,5 +59,7 @@ func main() {
 
 	}
 
-	r.Run()
+	if err := r.Run(); err != nil {
+		log.Fatalf("failed to start server: %v", err)
+	}
 }
