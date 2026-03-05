@@ -7,7 +7,9 @@ pipeline {
 
     environment {
         GO_BIN = "/usr/local/go/bin/go"
-        IMAGE_NAME = "johannes/book-management"
+        DOCKERHUB_REPO = "johannes/book-management"
+        CONTAINER_NAME = "book-management"
+        APP_PORT = "9090"
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/local/go/bin:${env.PATH}"
     }
 
@@ -52,12 +54,9 @@ pipeline {
             }
         }
 
-        // =========================
-        // CI SECTION (DOCKER BUILD)
-        // =========================
         stage('Docker Build (CI)') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:latest .'
+                sh 'docker build -t ${DOCKERHUB_REPO}:latest .'
             }
         }
 
@@ -73,8 +72,7 @@ pipeline {
                 )]) {
                     sh '''
                     echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    docker tag ${IMAGE_NAME}:latest $DOCKER_USER/book-management:latest
-                    docker push $DOCKER_USER/book-management:latest
+                    docker push ${DOCKERHUB_REPO}:latest
                     '''
                 }
             }
@@ -92,19 +90,24 @@ pipeline {
             }
         }
 
-        // =========================
-        // CD SECTION (DEPLOY)
-        // =========================
         stage('Deploy (CD)') {
             when {
                 branch 'main'
             }
             steps {
                 sh '''
-                docker pull ${IMAGE_NAME}:latest
-                docker stop book-management || true
-                docker rm book-management || true
-                docker run -d -p 8080:8080 --name book-management ${IMAGE_NAME}:latest
+                echo "Stopping old container if exists..."
+                docker stop ${CONTAINER_NAME} || true
+                docker rm ${CONTAINER_NAME} || true
+
+                echo "Pulling latest image from Docker Hub..."
+                docker pull ${DOCKERHUB_REPO}:latest
+
+                echo "Running new container on port ${APP_PORT}..."
+                docker run -d \
+                    --name ${CONTAINER_NAME} \
+                    -p ${APP_PORT}:8080 \
+                    ${DOCKERHUB_REPO}:latest
                 '''
             }
         }
@@ -115,13 +118,14 @@ pipeline {
                 sh 'echo $PATH'
                 sh 'which go'
                 sh 'which golangci-lint'
+                sh 'docker ps -a'
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline finisheds."
+            echo "Pipeline finished."
         }
         success {
             echo "Build SUCCESS"
