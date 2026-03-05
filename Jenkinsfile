@@ -107,6 +107,11 @@ pipeline {
                 docker run -d \
                     --name ${CONTAINER_NAME} \
                     -p ${APP_PORT}:8080 \
+                    -e DB_HOST=host.docker.internal \
+                    -e DB_USER=johannes \
+                    -e DB_PASSWORD=mypassword123 \
+                    -e DB_NAME=challengego \
+                    -e DB_PORT=5432 \
                     ${DOCKERHUB_REPO}:latest
                 '''
             }
