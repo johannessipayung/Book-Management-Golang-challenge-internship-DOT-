@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         GO_BIN = "/usr/local/go/bin/go"
-        DOCKERHUB_REPO = "johannes/book-management"
+        DOCKERHUB_REPO = "peenesss/book-management"
         CONTAINER_NAME = "book-management"
         APP_PORT = "9090"
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/local/go/bin:${env.PATH}"
