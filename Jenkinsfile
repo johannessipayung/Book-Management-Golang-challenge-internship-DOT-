@@ -62,7 +62,7 @@ pipeline {
 
         stage('Push Image (CI)') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' }
             }
             steps {
                 withCredentials([usernamePassword(
@@ -92,7 +92,7 @@ pipeline {
 
         stage('Deploy (CD)') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' }
             }
             steps {
                 sh '''
