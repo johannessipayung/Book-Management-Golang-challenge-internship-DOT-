@@ -94,28 +94,38 @@ pipeline {
             when {
                 expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' }
             }
+
             steps {
-                sh '''
-                echo "Stopping old container if exists..."
-                docker stop ${CONTAINER_NAME} || true
-                docker rm ${CONTAINER_NAME} || true
+                sshagent(['vps-ssh']) {
+                    sh '''
+                    echo "Connecting to VPS and deploying..."
 
-                echo "Pulling latest image from Docker Hub..."
-                docker pull ${DOCKERHUB_REPO}:latest
+                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 << EOF
 
-                echo "Running new container on port ${APP_PORT}..."
-                docker run -d \
-                    --name ${CONTAINER_NAME} \
-                    -p ${APP_PORT}:8080 \
-                    -e DB_HOST=host.docker.internal \
-                    -e DB_USER=johannes \
-                    -e DB_PASSWORD=mypassword123 \
-                    -e DB_NAME=challengego \
-                    -e DB_PORT=5432 \
-                    ${DOCKERHUB_REPO}:latest
-                '''
+                    echo "Stopping old container if exists..."
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+
+                    echo "Pulling latest image from Docker Hub..."
+                    docker pull ${DOCKERHUB_REPO}:latest
+
+                    echo "Running new container on port ${APP_PORT}..."
+                    docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        -p ${APP_PORT}:8080 \
+                        -e DB_HOST=host.docker.internal \
+                        -e DB_USER=johannes \
+                        -e DB_PASSWORD=mypassword123 \
+                        -e DB_NAME=challengego \
+                        -e DB_PORT=5432 \
+                        --restart always \
+                        ${DOCKERHUB_REPO}:latest
+
+                    EOF
+                    '''
+                }
             }
-        }
+        }   
 
         stage('Debug') {
             steps {
