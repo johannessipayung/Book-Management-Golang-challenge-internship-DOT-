@@ -93,30 +93,28 @@ pipeline {
         stage('Deploy (CD)') {
             steps {
                 sshagent(['vps-ssh']) {
-                    sh '''
+                    sh """
                     echo "Connecting to VPS and deploying..."
 
-                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 << 'ENDSSH'
+                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 "
+                        echo 'Stopping old container if exists...'
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
 
-                    echo "Stopping old container if exists..."
-                    docker stop book-management || true
-                    docker rm book-management || true
+                        echo 'Pulling latest image from Docker Hub...'
+                        docker pull ${DOCKERHUB_REPO}:latest
 
-                    echo "Pulling latest image from Docker Hub..."
-                    docker pull peenesss/book-management:latest
-
-                    echo "Running new container on port 9090..."
-                    docker run -d \
-                    --name book-management \
-                    -p 9090:8080 \
-                    --restart unless-stopped \
-                    peenesss/book-management:latest
-
-                    ENDSSH
-                    '''
+                        echo 'Running new container on port ${APP_PORT}...'
+                        docker run -d \
+                            --name ${CONTAINER_NAME} \
+                            -p ${APP_PORT}:8080 \
+                            --restart unless-stopped \
+                            ${DOCKERHUB_REPO}:latest
+                    "
+                    """
                 }
             }
-        }   
+        }
 
         stage('Debug') {
             steps {
