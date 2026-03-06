@@ -13,7 +13,7 @@ pipeline {
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/local/go/bin:${env.PATH}"
 
         // Database environment
-        DB_HOST = "127.0.0.1"          // IP VPS
+        DB_HOST = "103.149.177.39"          // IP VPS
         DB_USER = "johannes"
         DB_PASSWORD = "mypassword123"
         DB_NAME = "challengego"
