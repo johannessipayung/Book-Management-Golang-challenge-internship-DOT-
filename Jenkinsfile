@@ -11,6 +11,14 @@ pipeline {
         CONTAINER_NAME = "book-management"
         APP_PORT = "9090"
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/local/go/bin:${env.PATH}"
+
+        // Database environment
+        DB_HOST = "127.0.0.1"          // IP VPS
+        DB_USER = "johannes"
+        DB_PASSWORD = "mypassword123"
+        DB_NAME = "challengego"
+        DB_PORT = "5432"
+        DB_SSLMODE = "disable"
     }
 
     stages {
@@ -23,7 +31,6 @@ pipeline {
 
         stage('Quality Checks') {
             parallel {
-
                 stage('Vet') {
                     steps {
                         sh '${GO_BIN} vet ./...'
@@ -94,23 +101,29 @@ pipeline {
             steps {
                 sshagent(['vps-ssh']) {
                     sh """
-                    echo "Connecting to VPS and deploying..."
+                    echo 'Connecting to VPS and deploying...'
 
-                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 "
-                        echo 'Stopping old container if exists...'
+                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 '
+                        echo "Stopping old container if exists..."
                         docker stop ${CONTAINER_NAME} || true
                         docker rm ${CONTAINER_NAME} || true
 
-                        echo 'Pulling latest image from Docker Hub...'
+                        echo "Pulling latest image from Docker Hub..."
                         docker pull ${DOCKERHUB_REPO}:latest
 
-                        echo 'Running new container on port ${APP_PORT}...'
+                        echo "Running new container with DB env on port ${APP_PORT}..."
                         docker run -d \
                             --name ${CONTAINER_NAME} \
                             -p ${APP_PORT}:8080 \
                             --restart unless-stopped \
+                            -e DB_HOST=${DB_HOST} \
+                            -e DB_USER=${DB_USER} \
+                            -e DB_PASSWORD=${DB_PASSWORD} \
+                            -e DB_NAME=${DB_NAME} \
+                            -e DB_PORT=${DB_PORT} \
+                            -e DB_SSLMODE=${DB_SSLMODE} \
                             ${DOCKERHUB_REPO}:latest
-                    "
+                    '
                     """
                 }
             }
