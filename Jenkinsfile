@@ -91,37 +91,28 @@ pipeline {
         }
 
         stage('Deploy (CD)') {
-            when {
-                expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' }
-            }
-
             steps {
                 sshagent(['vps-ssh']) {
                     sh '''
                     echo "Connecting to VPS and deploying..."
 
-                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 << EOF
+                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 << 'ENDSSH'
 
                     echo "Stopping old container if exists..."
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
+                    docker stop book-management || true
+                    docker rm book-management || true
 
                     echo "Pulling latest image from Docker Hub..."
-                    docker pull ${DOCKERHUB_REPO}:latest
+                    docker pull peenesss/book-management:latest
 
-                    echo "Running new container on port ${APP_PORT}..."
+                    echo "Running new container on port 9090..."
                     docker run -d \
-                        --name ${CONTAINER_NAME} \
-                        -p ${APP_PORT}:8080 \
-                        -e DB_HOST=host.docker.internal \
-                        -e DB_USER=johannes \
-                        -e DB_PASSWORD=mypassword123 \
-                        -e DB_NAME=challengego \
-                        -e DB_PORT=5432 \
-                        --restart always \
-                        ${DOCKERHUB_REPO}:latest
+                    --name book-management \
+                    -p 9090:8080 \
+                    --restart unless-stopped \
+                    peenesss/book-management:latest
 
-                    EOF
+                    ENDSSH
                     '''
                 }
             }
