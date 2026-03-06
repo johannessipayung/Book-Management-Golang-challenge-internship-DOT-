@@ -1,40 +1,54 @@
 pipeline {
-    agent any
+    agent {
+        node {
+            label 'golang && linux'
+        }
+    }
 
     environment {
+        GO_BIN = "/usr/local/go/bin/go"
         DOCKERHUB_REPO = "peenesss/book-management"
-        VPS_IP = "103.149.177.39"
         CONTAINER_NAME = "book-management"
+        APP_PORT = "9090"
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/local/go/bin:${env.PATH}"
+
+        // Database environment
+        DB_HOST = "127.0.0.1"          // IP VPS
+        DB_USER = "johannes"
+        DB_PASSWORD = "mypassword123"
+        DB_NAME = "challengego"
+        DB_PORT = "5432"
+        DB_SSLMODE = "disable"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                credentialsId: 'github-johannes',
-                url: 'git@github.com:johannessipayung/Book-Management-Golang-challenge-internship-DOT-.git'
+                checkout scm
             }
         }
 
         stage('Quality Checks') {
             parallel {
-
-                stage('Go Vet') {
+                stage('Vet') {
                     steps {
-                        sh 'go vet ./...'
+                        sh '${GO_BIN} vet ./...'
                     }
                 }
 
                 stage('Lint') {
                     steps {
-                        sh 'golangci-lint run'
+                        sh '''
+                        export PATH=$PATH:/usr/local/go/bin:/opt/homebrew/bin
+                        golangci-lint run
+                        '''
                     }
                 }
 
                 stage('Test') {
                     steps {
-                        sh 'go test ./... -coverprofile=coverage.out'
+                        sh '${GO_BIN} test -coverprofile=coverage.out ./...'
                     }
                 }
             }
@@ -42,28 +56,24 @@ pipeline {
 
         stage('Build Binary') {
             steps {
-                sh '''
-                go mod download
-                CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o book-management .
-                '''
+                sh '${GO_BIN} mod download'
+                sh '${GO_BIN} build -o book-management .'
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Build (CI)') {
             steps {
-                sh '''
-                docker buildx build \
-                --platform linux/amd64 \
-                -t ${DOCKERHUB_REPO}:latest \
-                .
-                '''
+                sh 'docker build -t ${DOCKERHUB_REPO}:latest .'
             }
         }
 
-        stage('Push Image') {
+        stage('Push Image (CI)') {
+            when {
+                expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' }
+            }
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
+                    credentialsId: 'dockerhub-creds',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
@@ -75,63 +85,70 @@ pipeline {
             }
         }
 
-        stage('Deploy to VPS') {
+        stage('Generate Coverage Report') {
             steps {
-                sshagent(['root']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no root@${VPS_IP} '
+                sh '${GO_BIN} tool cover -html=coverage.out -o coverage.html'
+            }
+        }
 
-                        echo "Pull latest image..."
-                        docker pull ${DOCKERHUB_REPO}:latest
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'coverage.html', fingerprint: true
+            }
+        }
 
-                        echo "Stop old container..."
+        stage('Deploy (CD)') {
+            steps {
+                sshagent(['vps-ssh']) {
+                    sh """
+                    echo 'Connecting to VPS and deploying...'
+
+                    ssh -o StrictHostKeyChecking=no root@103.149.177.39 '
+                        echo "Stopping old container if exists..."
                         docker stop ${CONTAINER_NAME} || true
                         docker rm ${CONTAINER_NAME} || true
 
-                        echo "Run new container..."
-                        docker run -d \
-                        --name ${CONTAINER_NAME} \
-                        -p 9090:8080 \
-                        --restart unless-stopped \
-                        -e DB_HOST=172.17.0.1 \
-                        -e DB_USER=johannes \
-                        -e DB_PASSWORD=mypassword123 \
-                        -e DB_NAME=challengego \
-                        -e DB_PORT=5432 \
-                        -e DB_SSLMODE=disable \
-                        ${DOCKERHUB_REPO}:latest
+                        echo "Pulling latest image from Docker Hub..."
+                        docker pull ${DOCKERHUB_REPO}:latest
 
-                        echo "Running containers:"
-                        docker ps
+                        echo "Running new container with DB env on port ${APP_PORT}..."
+                        docker run -d \
+                            --name ${CONTAINER_NAME} \
+                            -p ${APP_PORT}:8080 \
+                            --restart unless-stopped \
+                            -e DB_HOST=${DB_HOST} \
+                            -e DB_USER=${DB_USER} \
+                            -e DB_PASSWORD=${DB_PASSWORD} \
+                            -e DB_NAME=${DB_NAME} \
+                            -e DB_PORT=${DB_PORT} \
+                            -e DB_SSLMODE=${DB_SSLMODE} \
+                            ${DOCKERHUB_REPO}:latest
                     '
-                    '''
+                    """
                 }
             }
         }
 
-        stage('Health Check') {
+        stage('Debug') {
             steps {
-                sh '''
-                sleep 10
-                curl -f http://103.149.177.39:9090 || exit 1
-                '''
+                sh 'docker --version'
+                sh 'echo $PATH'
+                sh 'which go'
+                sh 'which golangci-lint'
+                sh 'docker ps -a'
             }
         }
-
     }
 
     post {
-
-        success {
-            echo "Deployment SUCCESS"
-        }
-
-        failure {
-            echo "Pipeline FAILED"
-        }
-
         always {
-            archiveArtifacts artifacts: 'coverage.out', fingerprint: true
+            echo "Pipeline finished."
+        }
+        success {
+            echo "Build SUCCESS"
+        }
+        failure {
+            echo "Build FAILED"
         }
     }
 }
